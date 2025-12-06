@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaari Tirri - Multiplayer Card Game</title>
+    
+    <!-- Using Tailwind for utility classes alongside custom CSS for layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Socket.io is crucial for communication -->
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <!-- Custom CSS for the responsive layout to take effect immediately -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+
+</head>
+<body>
+
+    <!-- Stage 0: Join Screen -->
+    <div id="joinSection" class="fixed inset-0 flex items-center justify-center z-[100] bg-gray-900/90">
+        <div class="bg-white p-6 rounded-lg shadow-2xl w-80">
+            <h1 class="text-2xl font-bold mb-4 text-center">Join Room</h1>
+            <div class="mb-4">
+                <input type="text" id="userName" class="w-full p-2 border border-gray-300 rounded" placeholder="Your Name">
+            </div>
+            <div class="mb-6">
+                <input type="text" id="roomId" class="w-full p-2 border border-gray-300 rounded" placeholder="Room ID" value="1">
+            </div>
+            <button id="joinBtn" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition">Join Game</button>
+        </div>
+    </div>
+    
+    <!-- Stage 1: Game UI Container (initially hidden) -->
+    <div id="gameWrapper" class="hidden w-full h-full">
+
+        <!-- Background Image (fixed) -->
+        <div class="background"></div>
+
+        <!-- Central Table Area (responsive container) -->
+        <div class="table-area">
+            <img src="assets/table.png" class="table-img" alt="Card Game Table">
+
+            <!-- 1. DECK STACK -->
+            <div id="deck-stack" class="deck-stack">
+                <!-- Cards (back cover) will be dynamically added here during deal -->
+            </div>
+
+            <!-- 2. TRICK AREA (Played Cards) -->
+            <div id="trick-area" class="trick-area">
+                <!-- Played cards will occupy these slots -->
+            </div>
+            
+            <!-- 3. POWER SUIT & PARTNER INFO (Top of Table) -->
+            <div id="info-area" class="info-area">
+                <div class="info-slot" id="power-suit-slot">
+                    <span class="placeholder-text">Power Suit</span>
+                </div>
+                <!-- Partner slots will be dynamically added here -->
+                <div id="partner-slots" class="flex gap-2"></div>
+            </div>
+
+            <!-- 4. AUCTION BID PANEL (Overlay) -->
+            <div id="bid-panel" class="bid-panel hidden">
+                <p class="text-sm text-gray-400 mb-2">Highest Bidder: <span id="highest-bidder-name" class="font-bold">...</span></p>
+                <div class="bid-controls">
+                    <button id="bid-left-arrow" class="bid-arrow">
+                        <img src="assets/leftArrow.png" alt="Decrease Bid">
+                    </button>
+                    <span id="bid-number" class="bid-number">0</span>
+                    <button id="bid-right-arrow" class="bid-arrow">
+                        <img src="assets/rightArrow.png" alt="Increase Bid">
+                    </button>
+                </div>
+                <div class="flex gap-2 mt-3">
+                    <button id="bidBtn" class="btn-action bg-green-500 hover:bg-green-600 w-1/2">Place Bid</button>
+                    <button id="passBtn" class="btn-action bg-red-500 hover:bg-red-600 w-1/2">Pass</button>
+                </div>
+                <p id="bid-turn-msg" class="mt-2 text-yellow-300 text-center"></p>
+            </div>
+            
+            <!-- 5. POWER SUIT & PARTNER SELECTION MODAL (Large Overlay for Bid Winner) -->
+            <div id="selection-modal" class="selection-modal hidden">
+                <h3 class="text-xl font-bold mb-4" id="selection-title">Select Power Suit</h3>
+                <div id="full-deck-display" class="full-deck-display">
+                    <!-- Cards of the full deck for selection -->
+                </div>
+                <div class="selected-cards-slots">
+                    <div class="info-slot small-slot" id="selected-power-suit">
+                        <span class="placeholder-text">Selected Power Suit</span>
+                    </div>
+                    <div id="selected-partners" class="flex gap-2">
+                        <!-- Partner slots will be cloned here -->
+                    </div>
+                </div>
+                <button id="confirmSelectionBtn" class="btn-action bg-blue-500 hover:bg-blue-600 mt-4 w-1/3 mx-auto hidden">Confirm Selection</button>
+            </div>
+
+            <!-- 6. PLAYER HAND AREA -->
+            <div id="player-hand" class="player-hand">
+                <!-- Player's cards will be fanned here -->
+            </div>
+            
+            <!-- 7. GAME STATUS INFO (Right side of table) -->
+            <div class="game-status-panel">
+                <p>Round Score: <span id="roundScore">0</span></p>
+                <p>Turn: <span id="currentTurn">...</span></p>
+                <p>Team A Score: <span id="alphaScore">0</span> / <span id="targetBid">0</span></p>
+            </div>
+
+            <!-- 8. START GAME BUTTON (Initial state on table) -->
+            <button id="startGameBtn" class="start-game-btn">Start Game</button>
+            
+        </div> <!-- End .table-area -->
+
+        <!-- Sidebar for Chat and Round Log -->
+        <div class="sidebar">
+            <div class="chat-panel">
+                <div class="chat-header">Chat</div>
+                <div id="messages" class="messages"></div>
+                <form id="chat-form" class="chat-form">
+                    <input type="text" id="message" class="chat-input" placeholder="Type message..." required>
+                    <button type="submit" class="chat-send-btn">Send</button>
+                </form>
+            </div>
+            
+            <!-- New Round Log Window -->
+            <div class="round-log-panel">
+                <div class="log-header">Round Log</div>
+                <div id="round-log" class="round-log">
+                    <!-- Game update messages will go here -->
+                </div>
+            </div>
+        </div>
+        
+    </div> <!-- End #gameWrapper -->
+
+    <script src="script.js"></script>
+
+</body>
+</html>
